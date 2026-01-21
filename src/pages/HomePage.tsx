@@ -1,17 +1,33 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useNavigate } from 'react-router-dom'
 
 export default function HomePage() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
+          <div className="flex justify-center mb-6">
+            <div className="h-24 w-24 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-4xl font-bold shadow-lg">
+              VW
+            </div>
+          </div>
           <h1 className="text-5xl font-bold text-primary mb-4">
             One Aftersales
           </h1>
-          <p className="text-xl text-muted-foreground">
+          <p className="text-xl text-muted-foreground mb-8">
             Dealer Service Management Platform
           </p>
+          <div className="flex gap-4 justify-center">
+            <Button size="lg" onClick={() => navigate('/login?type=dealer')}>
+              Dealer Login
+            </Button>
+            <Button size="lg" variant="outline" onClick={() => navigate('/login?type=manufacturer')}>
+              Manufacturer Login
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
