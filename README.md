@@ -35,8 +35,8 @@ A comprehensive dealer service management platform built for Volkswagen and Skod
 
 1. Clone the repository
    ```bash
-   git clone <repository-url>
-   cd "Dealer PCC, API, Survey Project"
+   git clone https://github.com/SKVWKunal/dealer-pcc-api-other.git
+   cd dealer-pcc-api-other
    ```
 
 2. Install dependencies
@@ -44,7 +44,7 @@ A comprehensive dealer service management platform built for Volkswagen and Skod
    npm install
    ```
 
-3. Create environment file
+3. Create environment file (if needed)
    ```bash
    cp .env.example .env.local
    ```

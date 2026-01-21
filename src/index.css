@@ -1,0 +1,104 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 214 100% 16%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 214 100% 16%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 214 100% 16%;
+
+    /* Volkswagen Primary Blue */
+    --primary: 214 100% 16%;
+    --primary-foreground: 0 0% 100%;
+
+    /* VW Light Blue Accent */
+    --secondary: 195 100% 46%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Skoda Green */
+    --accent: 158 100% 26%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 214 100% 16%;
+
+    --radius: 0.5rem;
+
+    /* Success */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    /* Warning */
+    --warning: 48 96% 53%;
+    --warning-foreground: 0 0% 100%;
+
+    /* Info */
+    --info: 195 100% 46%;
+    --info-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 214 100% 8%;
+    --foreground: 0 0% 95%;
+
+    --card: 214 50% 10%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 214 50% 10%;
+    --popover-foreground: 0 0% 95%;
+
+    /* Lighter blue as primary in dark mode */
+    --primary: 195 100% 46%;
+    --primary-foreground: 214 100% 8%;
+
+    --secondary: 214 50% 16%;
+    --secondary-foreground: 0 0% 95%;
+
+    --accent: 158 80% 30%;
+    --accent-foreground: 0 0% 95%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 95%;
+
+    --muted: 214 50% 16%;
+    --muted-foreground: 215 20% 65%;
+
+    --border: 214 40% 20%;
+    --input: 214 40% 20%;
+    --ring: 195 100% 46%;
+
+    --success: 142 71% 35%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 48 96% 43%;
+    --warning-foreground: 0 0% 100%;
+
+    --info: 195 100% 46%;
+    --info-foreground: 0 0% 100%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
