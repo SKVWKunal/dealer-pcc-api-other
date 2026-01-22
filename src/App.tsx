@@ -14,6 +14,11 @@ import MTMeetPage from './pages/modules/MTMeetPage'
 import WorkshopSurveyPage from './pages/modules/WorkshopSurveyPage'
 import WarrantySurveyPage from './pages/modules/WarrantySurveyPage'
 import TechnicalSurveyPage from './pages/modules/TechnicalSurveyPage'
+import DatabasePage from './pages/DatabasePage'
+import GalleryPage from './pages/GalleryPage'
+import AboutPage from './pages/AboutPage'
+import FAQPage from './pages/FAQPage'
+import ContactPage from './pages/ContactPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,6 +39,13 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
+              
+              {/* Public Pages */}
+              <Route path="/database" element={<DatabasePage />} />
+              <Route path="/gallery" element={<GalleryPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/faq" element={<FAQPage />} />
+              <Route path="/contact" element={<ContactPage />} />
               
               <Route 
                 path="/dashboard" 
