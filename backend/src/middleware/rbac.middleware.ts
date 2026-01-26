@@ -300,9 +300,10 @@ export const authorizeManufacturerAdmin = (
       });
     }
 
-    if (req.user.userType !== 'manufacturer') {
+    const userType = (req.user as any).userType;
+    if (userType !== 'manufacturer') {
       logger.warn(
-        `Unauthorized admin access attempt - User: ${req.user.userId}, Type: ${req.user.userType}`
+        `Unauthorized admin access attempt - User: ${req.user.userId}, Type: ${userType}`
       );
       return res.status(403).json({
         success: false,
