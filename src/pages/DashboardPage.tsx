@@ -1,271 +1,366 @@
-import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MODULE_NAMES, ROLE_NAMES } from '@/types/auth';
-import Navigation from '@/components/Navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
+import {
+  FileText,
+  Users,
+  BarChart3,
+  Shield,
+  BookOpen,
+  Database,
+  Lock,
+  AlertCircle,
+  Clock,
+  CheckCircle,
+} from 'lucide-react';
+import { FEATURE_CONFIG, APPROVAL_STATUS_DISPLAY, APPROVAL_STATUS } from '@/config/rbac.config';
+
+interface UserProfile {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    dealerName: string;
+    dealerCode: string;
+    approvalStatus: string;
+  };
+  roles: Array<{
+    id: string;
+    name: string;
+    display_name: string;
+  }>;
+  features: Array<{
+    id: string;
+    slug: string;
+    name: string;
+    description: string;
+    icon: string;
+    routePath: string;
+    permissions: {
+      canView: boolean;
+      canCreate: boolean;
+      canEdit: boolean;
+    };
+  }>;
+}
+
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  FileText,
+  Users,
+  BarChart3,
+  Shield,
+  BookOpen,
+  Database,
+};
 
 export default function DashboardPage() {
-  const { user, hasAccess, logout } = useAuth();
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (!user) return null;
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        // Get user profile with features
+        const response = await fetch('/api/v1/auth/user/profile', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          },
+        });
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
+        if (!response.ok) {
+          if (response.status === 403) {
+            const error = await response.json();
+            if (error.error.code === 'APPROVAL_PENDING') {
+              toast.error('Your account is pending approval');
+              logout();
+              navigate('/registration-status', { state: { email: user?.email } });
+              return;
+            } else if (error.error.code === 'APPROVAL_REJECTED') {
+              toast.error('Your account has been rejected');
+              logout();
+              navigate('/');
+              return;
+            }
+          }
+          throw new Error('Failed to fetch profile');
+        }
 
-  const modules = [
-    { id: 'dealer_pcc', path: '/dealer-pcc', icon: '📋' },
-    { id: 'api_registration', path: '/api-registration', icon: '🔗' },
-    { id: 'mt_meet', path: '/mt-meet', icon: '👥' },
-    { id: 'workshop_survey', path: '/workshop-survey', icon: '🔧' },
-    { id: 'warranty_survey', path: '/warranty-survey', icon: '🛡️' },
-    { id: 'technical_survey', path: '/technical-survey', icon: '📊' },
-  ];
+        const data = await response.json();
+        setProfile(data.data);
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : 'Failed to load profile'
+        );
+        logout();
+        navigate('/login?type=dealer');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <Navigation />
-      
-      {/* Header */}
-      <div className="bg-gradient-to-r from-[#4A9D5F] to-[#1E5631] text-white shadow-lg">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">Škoda | Volkswagen Dashboard</h1>
-              <p className="text-sm opacity-90 mt-1">
-                Welcome, {user.name} • {ROLE_NAMES[user.role]}
-              </p>
-            </div>
-            <Button variant="secondary" onClick={handleLogout}>
-              Logout
-            </Button>
-          </div>
+    if (user) {
+      fetchProfile();
+    }
+  }, [user, navigate, logout]);
+
+  const getApprovalStatusDisplay = () => {
+    if (!profile) return null;
+
+    const status = profile.user.approvalStatus;
+    const config =
+      APPROVAL_STATUS_DISPLAY[status as keyof typeof APPROVAL_STATUS_DISPLAY];
+
+    if (!config) return null;
+
+    const StatusIcon = {
+      pending: Clock,
+      approved: CheckCircle,
+      rejected: AlertCircle,
+    }[status as 'pending' | 'approved' | 'rejected'] || Clock;
+
+    const bgColors = {
+      pending: 'bg-yellow-50 border-yellow-200',
+      approved: 'bg-green-50 border-green-200',
+      rejected: 'bg-red-50 border-red-200',
+    };
+
+    const textColors = {
+      pending: 'text-yellow-900',
+      approved: 'text-green-900',
+      rejected: 'text-red-900',
+    };
+
+    return (
+      <div className={`p-4 border rounded-lg ${bgColors[status as 'pending' | 'approved' | 'rejected']}`}>
+        <div className="flex items-center gap-2">
+          <StatusIcon className="h-5 w-5" />
+          <p className={`text-sm font-medium ${textColors[status as 'pending' | 'approved' | 'rejected']}`}>
+            {config.label}
+          </p>
         </div>
       </div>
+    );
+  };
 
-      {/* User Info Card */}
-      <div className="container mx-auto px-4 py-6">
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Your Profile</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Email</p>
-                <p className="font-medium">{user.email}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Role</p>
-                <p className="font-medium">{ROLE_NAMES[user.role]}</p>
-              </div>
-              {user.dealerCode && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Dealer Code</p>
-                  <p className="font-medium">{user.dealerCode}</p>
-                </div>
-              )}
-              {user.dealerName && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Dealer Name</p>
-                  <p className="font-medium">{user.dealerName}</p>
-                </div>
-              )}
+  if (isLoading) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="space-y-2">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-5 w-96" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Skeleton key={i} className="h-48" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6">
+            <div className="text-center space-y-4">
+              <AlertCircle className="h-12 w-12 mx-auto text-destructive" />
+              <h2 className="text-xl font-semibold">Unable to Load Profile</h2>
+              <p className="text-muted-foreground">
+                There was an error loading your profile. Please try again.
+              </p>
+              <Button onClick={() => navigate('/login?type=dealer')} className="w-full">
+                Back to Login
+              </Button>
             </div>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
 
-        {/* Module Access Cards */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Available Modules</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {modules.map((module) => {
-              const hasModuleAccess = hasAccess(module.id as any);
-              
-              if (!hasModuleAccess) return null;
+  const accessibleFeatures = profile.features.sort(
+    (a, b) => (a.routePath?.split('/').length || 0) - (b.routePath?.split('/').length || 0)
+  );
 
-              return (
-                <Card
-                  key={module.id}
-                  className="hover:shadow-lg transition-shadow cursor-pointer"
-                  onClick={() => navigate(module.path)}
-                >
-                  <CardHeader>
-                    <div className="flex items-center gap-3">
-                      <span className="text-4xl">{module.icon}</span>
-                      <div>
-                        <CardTitle className="text-lg">
-                          {MODULE_NAMES[module.id as keyof typeof MODULE_NAMES]}
-                        </CardTitle>
-                        <CardDescription>Click to access</CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <Button className="w-full">
-                      Open Module
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted p-6">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="space-y-4">
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-4xl font-bold">Dashboard</h1>
+              <p className="text-muted-foreground mt-2">
+                Welcome back, {profile.user.name}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => {
+                logout();
+                navigate('/');
+              }}
+            >
+              Logout
+            </Button>
           </div>
-        </div>
 
-        {/* Dashboard Statistics - Conditional based on role */}
-        {user.dealerCode ? (
-          // Dealer-specific Dashboard
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>My Activity Overview</CardTitle>
-              <CardDescription>Your submissions and activity across all modules</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
-                  <p className="text-2xl font-bold text-blue-600">0</p>
-                  <p className="text-xs text-muted-foreground mt-1">PCCs Submitted</p>
+          {/* User Info Card */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">User Name</p>
+                  <p className="font-semibold">{profile.user.name}</p>
                 </div>
-                <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
-                  <p className="text-2xl font-bold text-purple-600">0</p>
-                  <p className="text-xs text-muted-foreground mt-1">MT Registrations</p>
+                <div>
+                  <p className="text-sm text-muted-foreground">Email</p>
+                  <p className="font-semibold text-sm break-all">{profile.user.email}</p>
                 </div>
-                <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
-                  <p className="text-2xl font-bold text-green-600">0</p>
-                  <p className="text-xs text-muted-foreground mt-1">Surveys Completed</p>
+                <div>
+                  <p className="text-sm text-muted-foreground">Dealer</p>
+                  <p className="font-semibold">
+                    {profile.user.dealerCode} - {profile.user.dealerName}
+                  </p>
                 </div>
-                <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200">
-                  <p className="text-2xl font-bold text-orange-600">0</p>
-                  <p className="text-xs text-muted-foreground mt-1">API Registrations</p>
+                <div>
+                  <p className="text-sm text-muted-foreground">Roles</p>
+                  <p className="font-semibold">
+                    {profile.roles.map((r) => r.display_name).join(', ')}
+                  </p>
                 </div>
               </div>
-              
-              <div className="mt-6">
-                <h4 className="font-semibold mb-3">Recent Activity</h4>
-                <div className="space-y-2">
-                  <div className="p-3 bg-muted/50 rounded text-sm text-muted-foreground">
-                    No recent activity
-                  </div>
-                </div>
+
+              {/* Approval Status */}
+              <div className="mt-4">
+                {getApprovalStatusDisplay()}
               </div>
             </CardContent>
           </Card>
-        ) : (
-          // Admin Dashboard with Complete Overview
-          <div className="mt-6 space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>System-Wide Overview</CardTitle>
-                <CardDescription>Complete statistics across all dealers and modules</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
-                    <p className="text-3xl font-bold text-blue-600">0</p>
-                    <p className="text-xs text-muted-foreground mt-1">Total Dealers</p>
-                  </div>
-                  <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
-                    <p className="text-3xl font-bold text-purple-600">0</p>
-                    <p className="text-xs text-muted-foreground mt-1">Active PCCs</p>
-                  </div>
-                  <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
-                    <p className="text-3xl font-bold text-green-600">0</p>
-                    <p className="text-xs text-muted-foreground mt-1">Total Surveys</p>
-                  </div>
-                  <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200">
-                    <p className="text-3xl font-bold text-orange-600">0</p>
-                    <p className="text-xs text-muted-foreground mt-1">API Integrations</p>
-                  </div>
-                  <div className="p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-lg border border-red-200">
-                    <p className="text-3xl font-bold text-red-600">0</p>
-                    <p className="text-xs text-muted-foreground mt-1">Pending Reviews</p>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                  {/* Module Activity Chart */}
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-semibold mb-4">Module Activity</h4>
-                    <div className="space-y-3">
-                      <div>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span>Dealer PCC</span>
-                          <span className="font-medium">0</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div className="bg-blue-500 h-2 rounded-full" style={{width: '0%'}}></div>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span>MT Meet</span>
-                          <span className="font-medium">0</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div className="bg-purple-500 h-2 rounded-full" style={{width: '0%'}}></div>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span>Surveys</span>
-                          <span className="font-medium">0</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div className="bg-green-500 h-2 rounded-full" style={{width: '0%'}}></div>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span>API Registrations</span>
-                          <span className="font-medium">0</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div className="bg-orange-500 h-2 rounded-full" style={{width: '0%'}}></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+        </div>
 
-                  {/* Dealer Participation */}
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-semibold mb-4">Dealer Engagement</h4>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Active Dealers</span>
-                        <span className="text-2xl font-bold text-green-600">0</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Inactive Dealers</span>
-                        <span className="text-2xl font-bold text-gray-400">0</span>
-                      </div>
-                      <div className="mt-4 p-3 bg-muted rounded">
-                        <div className="text-sm text-muted-foreground">Engagement Rate</div>
-                        <div className="text-2xl font-bold mt-1">0%</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent System Activity</CardTitle>
-                <CardDescription>Latest submissions and updates across all modules</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="p-4 bg-muted/50 rounded text-sm text-center text-muted-foreground">
-                    No recent activity to display
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Features Section */}
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-2xl font-bold">Available Features</h2>
+            <p className="text-muted-foreground">
+              {accessibleFeatures.length} feature
+              {accessibleFeatures.length !== 1 ? 's' : ''} available for your role
+              {profile.roles.length > 1 ? 's' : ''}
+            </p>
           </div>
-        )}
+
+          {accessibleFeatures.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {accessibleFeatures.map((feature) => {
+                const IconComponent =
+                  iconMap[feature.icon as keyof typeof iconMap] || FileText;
+
+                return (
+                  <Card
+                    key={feature.id}
+                    className="hover:shadow-lg transition-shadow cursor-pointer"
+                    onClick={() => navigate(feature.routePath || '#')}
+                  >
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-2 flex-1">
+                          <CardTitle className="flex items-center gap-2">
+                            <IconComponent className="h-5 w-5 text-primary" />
+                            {feature.name}
+                          </CardTitle>
+                          <CardDescription>{feature.description}</CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="space-y-4">
+                      {/* Permissions Display */}
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold text-muted-foreground">
+                          YOUR PERMISSIONS
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {feature.permissions.canView && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                              <span>👁️</span> View
+                            </span>
+                          )}
+                          {feature.permissions.canCreate && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
+                              <span>➕</span> Create
+                            </span>
+                          )}
+                          {feature.permissions.canEdit && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-medium">
+                              <span>✏️</span> Edit
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Action Button */}
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(feature.routePath || '#');
+                        }}
+                        className="w-full"
+                      >
+                        Access Feature
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="p-12 text-center space-y-4">
+                <Lock className="h-12 w-12 mx-auto text-muted-foreground" />
+                <div>
+                  <h3 className="font-semibold text-lg">No Features Available</h3>
+                  <p className="text-muted-foreground">
+                    Your account doesn't have access to any features yet. Please contact
+                    the manufacturer administrator.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Quick Stats */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Stats</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 rounded-lg bg-muted">
+                <p className="text-sm text-muted-foreground">Total Features</p>
+                <p className="text-2xl font-bold">{accessibleFeatures.length}</p>
+              </div>
+              <div className="p-4 rounded-lg bg-muted">
+                <p className="text-sm text-muted-foreground">Assigned Roles</p>
+                <p className="text-2xl font-bold">{profile.roles.length}</p>
+              </div>
+              <div className="p-4 rounded-lg bg-muted">
+                <p className="text-sm text-muted-foreground">Account Status</p>
+                <p className="text-2xl font-bold capitalize">
+                  {profile.user.approvalStatus === 'approved' ? '✓ Active' : 'Pending'}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

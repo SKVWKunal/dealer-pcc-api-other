@@ -16,6 +16,8 @@ import apiRegRoutes from './routes/apiRegistration.routes';
 import mtMeetRoutes from './routes/mtMeet.routes';
 import surveyRoutes from './routes/survey.routes';
 import dashboardRoutes from './routes/dashboard.routes';
+import registrationRoutes from './routes/registration.routes';
+import rbacRoutes from './routes/rbac.routes';
 import { initDatabase } from './config/database';
 
 dotenv.config();
@@ -86,6 +88,8 @@ app.get('/health', (_req: Request, res: Response) => {
 
 // API Routes
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/auth', registrationRoutes);
+app.use('/api/v1/auth', rbacRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/dealers', dealerRoutes);
 app.use('/api/v1/dealer-pcc', pccRoutes);
