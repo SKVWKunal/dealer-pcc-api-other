@@ -172,8 +172,53 @@ router.get(
 // ============================================================================
 
 /**
- * GET /api/v1/admin/registrations/pending
- * Get all pending registration requests
+ * GET /api/v1/auth/admin/registrations
+ * Get registration requests with optional status filter
+ * Supports query parameters: status, page, limit
+ */
+router.get(
+  '/admin/registrations',
+  authenticate,
+  authorizeManufacturerAdmin,
+  async (req: Request, res: Response, next) => {
+    try {
+      const { status = APPROVAL_STATUS.PENDING, page = '1', limit = '10' } = req.query;
+      const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
+
+      const countResult = await query(
+        'SELECT COUNT(*) as total FROM dealer_registration_requests WHERE status = $1',
+        [status]
+      );
+
+      const dataResult = await query(
+        `SELECT 
+          id, dealer_code, dealer_name, user_name, email, mobile_number,
+          requested_role, additional_info, submission_date, status
+         FROM dealer_registration_requests
+         WHERE status = $1
+         ORDER BY submission_date DESC
+         LIMIT $2 OFFSET $3`,
+        [status, parseInt(limit as string), offset]
+      );
+
+      res.json({
+        success: true,
+        data: {
+          total: parseInt(countResult.rows[0].total),
+          page: parseInt(page as string),
+          limit: parseInt(limit as string),
+          registrations: dataResult.rows,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /api/v1/auth/admin/registrations/pending
+ * Get all pending registration requests (deprecated - use /admin/registrations?status=pending)
  */
 router.get(
   '/admin/registrations/pending',
