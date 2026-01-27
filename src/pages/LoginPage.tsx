@@ -77,7 +77,40 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-6 pt-6 border-t text-center">
+          <div className="mt-6 pt-6 border-t">
+            <p className="text-sm font-semibold text-muted-foreground mb-3">Test Credentials:</p>
+            <div className="space-y-2 text-xs">
+              {userType === 'manufacturer' ? (
+                <>
+                  <div className="bg-muted p-2 rounded">
+                    <p className="font-medium">Manufacturer Admin</p>
+                    <p>📧 admin@volkswagen.com</p>
+                    <p>🔐 Admin@123</p>
+                  </div>
+                  <div className="bg-muted p-2 rounded">
+                    <p className="font-medium">Super Admin</p>
+                    <p>📧 superadmin@oneaftersales.com</p>
+                    <p>🔐 Admin@123</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="bg-muted p-2 rounded">
+                    <p className="font-medium">Master Technician</p>
+                    <p>📧 mt@dealer1.com</p>
+                    <p>🔐 Dealer@123</p>
+                  </div>
+                  <div className="bg-muted p-2 rounded">
+                    <p className="font-medium">Service Manager</p>
+                    <p>📧 sm@dealer1.com</p>
+                    <p>🔐 Dealer@123</p>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-4 pt-4 border-t text-center">
             <p className="text-sm text-muted-foreground">
               {userType === 'dealer' ? (
                 <>

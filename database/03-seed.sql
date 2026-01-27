@@ -9,19 +9,19 @@ INSERT INTO dealers (dealer_code, dealer_name, city, state, brand, status) VALUE
 -- Insert Super Admin
 -- Password: Admin@123
 INSERT INTO users (email, password_hash, name, role, user_type, is_active) VALUES
-('superadmin@oneaftersales.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5MdFiXN6KXpOu', 'Super Administrator', 'super_admin', 'manufacturer', true);
+('superadmin@oneaftersales.com', '$2a$12$YhNDUoLP54haeZnRhX9i4eLFt3RzuCF2Mnrish3H1pACaWKB3Tqvy', 'Super Administrator', 'super_admin', 'manufacturer', true);
 
 -- Insert Manufacturer Admin
 -- Password: Admin@123
 INSERT INTO users (email, password_hash, name, role, user_type, is_active) VALUES
-('admin@volkswagen.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5MdFiXN6KXpOu', 'VW Admin', 'manufacturer_admin', 'manufacturer', true);
+('admin@volkswagen.com', '$2a$12$YhNDUoLP54haeZnRhX9i4eLFt3RzuCF2Mnrish3H1pACaWKB3Tqvy', 'VW Admin', 'manufacturer_admin', 'manufacturer', true);
 
 -- Insert Dealer Users
 -- Password: Dealer@123
 INSERT INTO users (email, password_hash, name, role, user_type, dealer_id, designation, is_active) VALUES
-('mt@dealer1.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5MdFiXN6KXpOu', 'John Master Tech', 'master_technician', 'dealer', 
+('mt@dealer1.com', '$2a$12$EepbcgwdbQ/PMS2M.nGe5.j4MePD9euQ21R8P0NsBQ.uDBeF5pJOa', 'John Master Tech', 'master_technician', 'dealer', 
   (SELECT id FROM dealers WHERE dealer_code = 'DLR001'), 'master_technician', true),
-('sm@dealer1.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5MdFiXN6KXpOu', 'Mike Service Manager', 'service_manager', 'dealer',
+('sm@dealer1.com', '$2a$12$EepbcgwdbQ/PMS2M.nGe5.j4MePD9euQ21R8P0NsBQ.uDBeF5pJOa', 'Mike Service Manager', 'service_manager', 'dealer',
   (SELECT id FROM dealers WHERE dealer_code = 'DLR001'), 'service_manager', true);
 
 -- Grant Module Access to Super Admin

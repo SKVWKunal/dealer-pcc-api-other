@@ -47,7 +47,7 @@ services:
       PORT: 3000
       DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-postgres123}@postgres:5432/oneaftersales
       REDIS_URL: redis://redis:6379
-      ALLOWED_ORIGINS: http://localhost:8080,http://localhost:3000
+      ALLOWED_ORIGINS: http://localhost:8080,http://localhost:8082,http://localhost:3000
       SESSION_SECRET: ${SESSION_SECRET:-dev-secret-key-change-in-production}
       JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-in-production}
       JWT_EXPIRY: 24h
@@ -73,7 +73,7 @@ services:
       dockerfile: Dockerfile
     container_name: oneaftersales-web
     ports:
-      - "8080:80"
+      - "8082:80"
     restart: unless-stopped
 
 volumes:

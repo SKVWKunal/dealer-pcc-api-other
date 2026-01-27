@@ -25,6 +25,9 @@ dotenv.config();
 const app: Application = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust proxy - required for rate limiter in production/Codespaces
+app.set('trust proxy', true);
+
 // Redis client setup
 const redisClient = createClient({
   url: process.env.REDIS_URL || 'redis://localhost:6379',
@@ -35,8 +38,34 @@ redisClient.connect().catch(console.error);
 
 // Middleware
 app.use(helmet());
+
+// CORS configuration with support for Codespaces and local development
+const allowedOrigins = [
+  'http://localhost:8080',
+  'http://localhost:8082',
+  'http://localhost:3000',
+  ...(process.env.ALLOWED_ORIGINS?.split(',') || []),
+];
+
+// Add Codespaces URLs if in Codespaces environment
+if (process.env.CODESPACE_NAME) {
+  const codespaceOrigin = `https://${process.env.CODESPACE_NAME}-8082.app.github.dev`;
+  allowedOrigins.push(codespaceOrigin);
+  logger.info(`Added Codespaces origin: ${codespaceOrigin}`);
+}
+
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:8080'],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, Postman, curl)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+      callback(null, true);
+    } else {
+      logger.warn(`Blocked CORS request from: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 app.use(express.json());
@@ -58,11 +87,20 @@ app.use(
   })
 );
 
-// Rate limiting
+// Rate limiting with proper trust proxy configuration
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'),
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'),
   message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Skip failed requests to prevent lockout on wrong credentials
+  skipFailedRequests: false,
+  // Use a custom key generator that works with trust proxy
+  keyGenerator: (req) => {
+    // In Codespaces/production, use X-Forwarded-For, otherwise use req.ip
+    return req.headers['x-forwarded-for'] as string || req.ip || 'unknown';
+  },
 });
 
 app.use('/api/', limiter);

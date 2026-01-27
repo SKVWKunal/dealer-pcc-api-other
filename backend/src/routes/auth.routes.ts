@@ -19,6 +19,11 @@ const loginLimiter = rateLimit({
   max: 5,
   message: 'Too many login attempts, please try again later.',
   skipSuccessfulRequests: true,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    return req.headers['x-forwarded-for'] as string || req.ip || 'unknown';
+  },
 });
 
 // Validation schemas
