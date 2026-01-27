@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkAuth = () => {
       const storedUser = localStorage.getItem('user');
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       
       if (storedUser && token) {
         try {
@@ -93,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Store in localStorage
       localStorage.setItem('user', JSON.stringify(transformedUser));
-      localStorage.setItem('token', accessToken);
+      localStorage.setItem('accessToken', accessToken);
 
       setAuthState({
         user: transformedUser,
@@ -116,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       
       if (token) {
         await fetch(`${API_URL}/api/v1/auth/logout`, {
@@ -131,7 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Logout error:', error);
     } finally {
       localStorage.removeItem('user');
-      localStorage.removeItem('token');
+      localStorage.removeItem('accessToken');
       setAuthState({
         user: null,
         isAuthenticated: false,
