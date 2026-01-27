@@ -90,7 +90,7 @@ export const ROLE_FEATURE_PERMISSIONS = {
     FEATURES.WARRANTY_SURVEY,
     FEATURES.DATABASE,
   ],
-} as const;
+};
 
 // Role-specific form fields for registration
 export const ROLE_SPECIFIC_FIELDS = {
@@ -143,17 +143,16 @@ export const canAccessFeature = (
 ): boolean => {
   const roleFeatures =
     ROLE_FEATURE_PERMISSIONS[role as keyof typeof ROLE_FEATURE_PERMISSIONS];
-  return roleFeatures ? roleFeatures.includes(feature as any) : false;
+  return roleFeatures && roleFeatures.length > 0 ? (roleFeatures as string[]).includes(feature) : false;
 };
 
 /**
  * Get all features accessible to a role
  */
 export const getFeaturesByRole = (role: string): string[] => {
-  return (
-    ROLE_FEATURE_PERMISSIONS[role as keyof typeof ROLE_FEATURE_PERMISSIONS] ||
-    []
-  );
+  const features =
+    ROLE_FEATURE_PERMISSIONS[role as keyof typeof ROLE_FEATURE_PERMISSIONS];
+  return features ? [...features] : [];
 };
 
 /**
