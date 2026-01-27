@@ -143,16 +143,17 @@ export const canAccessFeature = (
 ): boolean => {
   const roleFeatures =
     ROLE_FEATURE_PERMISSIONS[role as keyof typeof ROLE_FEATURE_PERMISSIONS];
-  return roleFeatures ? Array.from(roleFeatures).includes(feature as any) : false;
+  return roleFeatures ? roleFeatures.includes(feature as any) : false;
 };
 
 /**
  * Get all features accessible to a role
  */
 export const getFeaturesByRole = (role: string): string[] => {
-  const features =
-    ROLE_FEATURE_PERMISSIONS[role as keyof typeof ROLE_FEATURE_PERMISSIONS];
-  return features ? Array.from(features) : [];
+  return (
+    ROLE_FEATURE_PERMISSIONS[role as keyof typeof ROLE_FEATURE_PERMISSIONS] ||
+    []
+  );
 };
 
 /**
