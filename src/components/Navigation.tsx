@@ -22,25 +22,17 @@ export default function Navigation() {
   ];
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50 border-b border-gray-200">
-      <div className="container mx-auto px-4">
+    <nav className="bg-white shadow-md sticky top-0 z-50 border-b border-gray-200" style={{ colorScheme: 'light' }}>
+      <div className="container mx-auto px-2 sm:px-4 lg:px-6 xl:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="flex items-center space-x-2">
-              <svg 
-                viewBox="0 0 40 40" 
-                className="h-10 w-10"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <circle cx="20" cy="20" r="18" fill="#4A9D5F" stroke="#2D5F3A" strokeWidth="2"/>
-                <text x="20" y="27" fontSize="20" fontWeight="bold" fill="white" textAnchor="middle">S</text>
-              </svg>
-              <span className="text-xl font-bold text-gray-800">
-                Škoda <span className="text-gray-400">|</span> Volkswagen
-              </span>
-            </div>
+          <Link to="/" className="flex items-center flex-shrink-0">
+            <img 
+              src="/skoda-vw-banner.svg" 
+              alt="Škoda | Volkswagen" 
+              className="h-8 sm:h-10 md:h-12 w-auto"
+              loading="eager"
+            />
           </Link>
 
           {/* Desktop Navigation */}
@@ -82,8 +74,8 @@ export default function Navigation() {
         </div>
 
         {/* Mobile Navigation */}
-        <div className="lg:hidden pb-4">
-          <div className="grid grid-cols-2 gap-2">
+        <div className="lg:hidden pb-4 px-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {navigationItems.map((item) => (
               <Link
                 key={item.path}
